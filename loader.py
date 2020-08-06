@@ -4,8 +4,11 @@ from skimage import filters, morphology, io, color
 from joblib import Parallel, delayed
 import matplotlib.pyplot as plt
 
-def load(fn, dtype = '<f4', roi = None):
+def load(fn, dtype = '<f4', roi = None, skip_n_bytes = 0):
     f = open(fn, 'rb')
+    if skip_n_bytes > 0:
+        _ = f.read(skip_n_bytes)
+
     shape = struct.unpack('iii', f.read(4*3))
     print ("shape of data: " + str(shape))
     N = shape[0] * shape[1] * shape[2]
