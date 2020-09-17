@@ -12,14 +12,14 @@ def dline_cost(I, l, d):
 def smooth_line(l):
     return np.array([savgol_filter(l[0], 101, 2) , l[1]])
 
-def correct_line(seed_line, I, iters = 30000, debug_plot = False, eps = 1.):
+def correct_line(seed_line, I, iters = 30000, debug_plot = False, eps = 1., d=5):
     l = seed_line.copy()
     dists, dists_on_filter = [], []
     for iter in range(iters):
         lm = l.copy()
         lm[:, np.random.randint(0, lm.shape[1])] += [np.random.choice([-1, 1]), 0]
-        a = dline_cost(I, l , 5)
-        b = dline_cost(I, lm, 5)
+        a = dline_cost(I, l , d)
+        b = dline_cost(I, lm, d)
 
         if a < b: l = lm
 
@@ -28,7 +28,7 @@ def correct_line(seed_line, I, iters = 30000, debug_plot = False, eps = 1.):
         if iter % 500 == 0:
             ls = np.round(smooth_line(l)).astype(int)
             l = ls.copy()
-            dist_f = dline_cost(I, l , 5)
+            dist_f = dline_cost(I, l , d)
             if len(dists_on_filter) > 0:
                 if (np.abs(dists_on_filter[-1] - dist_f) < eps):
                     break
