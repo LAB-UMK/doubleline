@@ -3,6 +3,8 @@ import struct
 from skimage import filters, morphology, io, color
 from joblib import Parallel, delayed
 import matplotlib.pyplot as plt
+from skimage import transform
+import warnings
 
 def load(fn, dtype = '<f4', roi = None, skip_n_bytes = 0):
     f = open(fn, 'rb')
@@ -67,6 +69,49 @@ def plot_segments(I, segments, segments_colors, margin = True):
             I[segm[0]-1, segm[1]] = (I[segm[0], segm[1]] + segm_color / 255 ) /2
             I[segm[0]+1, segm[1]] = (I[segm[0], segm[1]] + segm_color / 255 ) /2
     return I
+
+
+def rever(images, pos, order=1):
+    """Perform simple image stiching of N images using trajectory pos.
+
+    Parameters
+    ----------
+    images : ndarray (N, W,H)
+        2d array of N images of WxH size
+    pos : ndarray(N,2)
+        trajectory of movement
+    order : int in range 0-5, default=1
+        The order of interpolation
+        0-Nerest Neighbor
+        1-BiLinear
+        2-BiCubic
+
+    Returns
+    -------
+    ndarray (maxW x maxH)
+        One image of size (max(pos.T[0]) x max(pos.T[1])
+
+    """
+
+    oshape = np.round(np.abs(np.nanmax(pos, axis=0) - np.nanmin(pos, axis=0))).astype(int)
+    oshape = (oshape[1] + images[0].shape[0], oshape[0]+images[0].shape[1] )
+    offset = np.nanmin(pos, axis=0)
+
+    warped_imgs = []
+    for frame_no, f in enumerate(images):
+        if np.isnan(pos[frame_no]).any(): continue
+        tr = transform.SimilarityTransform(translation=pos[frame_no] + np.abs(offset))
+        warped = transform.warp(images[frame_no], tr.inverse, output_shape=oshape, cval=np.nan, order=order)
+        warped_imgs.append(warped)
+        if frame_no == 0:
+            anchor = tr([0,0])[0]
+
+    warped_imgs = np.array(warped_imgs)
+    with warnings.catch_warnings(): #supress mean of empty slice warning
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        O = np.nanmean(warped_imgs, axis=0)
+
+    return O, np.array(anchor)
 
 if __name__ == "__main__":
     fn = './data/mouse_davis_OCT1_Amp.bin'

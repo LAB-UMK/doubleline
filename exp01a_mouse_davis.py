@@ -51,8 +51,10 @@ for i in np.arange(0, len(bscan)):
 
 OUT_DIR = './out/'
 segments_corrected = {0: segments}
+import importlib
+dline = importlib.reload(dline)
 
-for i in np.arange(0, len(bscan)):
+for i in np.arange(0, len(bscan)//2):
     I = bscan_p[i]
     key = np.argmin(np.abs(np.array(list(segments_corrected.keys())) - i))
     closest_idx = np.array(list(segments_corrected.keys()))[key]
@@ -65,18 +67,18 @@ for i in np.arange(0, len(bscan)):
     segments_corrected[i] = segm_corrected
 
     ## this part is for saving results
-    Ic = loader.plot_segments(I, segm_corrected, segments_colors)
-    fig, (ax1, ax2) = plt.subplots(figsize=(20, 10), nrows=2)
-
-    ax1.imshow(I[250:450], cmap='gray')
-    ax2.imshow(Ic[250:450])
-    plt.tight_layout()
-    fig.savefig(OUT_DIR + str(i).rjust(4,'0')+ '.png')
-    plt.close(fig)
-
-    mask = np.zeros(I.shape)
-    mask = loader.plot_segments(mask, segm_corrected, segments_colors, margin=False)
-    mask /= mask.max()
-    mask = (mask*255).astype(np.uint8)
-    mask[(mask == [0,0,0]).all(axis=2)] = [255,255,255]
-    io.imsave(OUT_DIR + 'mask' + str(i).rjust(4,'0')+ '.png', mask)
+    # Ic = loader.plot_segments(I, segm_corrected, segments_colors)
+    # fig, (ax1, ax2) = plt.subplots(figsize=(20, 10), nrows=2)
+    #
+    # ax1.imshow(I[250:450], cmap='gray')
+    # ax2.imshow(Ic[250:450])
+    # plt.tight_layout()
+    # fig.savefig(OUT_DIR + str(i).rjust(4,'0')+ '.png')
+    # plt.close(fig)
+    #
+    # mask = np.zeros(I.shape)
+    # mask = loader.plot_segments(mask, segm_corrected, segments_colors, margin=False)
+    # mask /= mask.max()
+    # mask = (mask*255).astype(np.uint8)
+    # mask[(mask == [0,0,0]).all(axis=2)] = [255,255,255]
+    # io.imsave(OUT_DIR + 'mask' + str(i).rjust(4,'0')+ '.png', mask)
